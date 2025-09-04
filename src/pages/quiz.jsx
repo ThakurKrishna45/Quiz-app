@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
+import Result from "./Result";
 
 
 const Quiz = () => {
     const [questions, setQuestions] = useState([]);
+    const [originalQuestions, setOriginalQuestions] = useState(null); // Store the original set
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [answers, setAnswers] = useState({});
     const [isFinished, setIsFinished] = useState(false);
 
     useEffect(() => {
-        
         const fetchQuestions = async () => {
             const response = await fetch(
                 "https://opentdb.com/api.php?amount=5&type=multiple"
@@ -21,8 +22,8 @@ const Quiz = () => {
                 correctAnswer: q.correct_answer,
             }));
             setQuestions(formattedQuestions);
+            setOriginalQuestions(formattedQuestions); // Save the original set
         };
-
         fetchQuestions();
     }, []);
 
@@ -67,16 +68,21 @@ const Quiz = () => {
             return acc;
         }, 0);
 
+        const handleRestart = () => {
+            setQuestions(originalQuestions || []);
+            setCurrentQuestionIndex(0);
+            setSelectedAnswer(null);
+            setAnswers({});
+            setIsFinished(false);
+        };
+
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100">
-                <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md text-center">
-                    <h1 className="text-2xl font-bold mb-4 text-purple-700">Quiz Finished!</h1>
-                    <p className="text-lg text-gray-700 mb-6">
-                        Your score: <span className="font-bold text-green-600">{score}</span> / {questions.length}
-                    </p>
-                    <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition" onClick={() => window.location.reload()}>Restart Quiz</button>
-                </div>
-            </div>
+            <Result
+                questions={questions}
+                answers={answers}
+                score={score}
+                onRestart={handleRestart}
+            />
         );
     }
 
